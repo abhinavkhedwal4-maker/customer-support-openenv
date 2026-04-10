@@ -1,3 +1,12 @@
+---
+title: Customer Support OpenEnv
+emoji: 🎧
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
+
 # customer-support-openenv
 
 An **OpenEnv-style** reinforcement-learning environment that simulates customer-support
@@ -6,12 +15,10 @@ interactions across three difficulty tiers: **easy**, **medium**, and **hard**.
 ---
 
 ## Project Structure
-
-```
 customer-support-openenv/
 │── baseline.py          # Rule-based baseline agent
 │── env/
-│   ├── __init__.py      # Public exports
+│   ├── init.py      # Public exports
 │   ├── environment.py   # CustomerSupportEnv (reset / step / state)
 │   ├── models.py        # Pydantic schemas: Observation, Action, Reward
 │   └── tasks.py         # Task definitions + graders
@@ -19,8 +26,6 @@ customer-support-openenv/
 │── Dockerfile           # Container to run baseline
 │── requirements.txt     # Python dependencies
 └── README.md
-```
-
 ---
 
 ## Tasks
