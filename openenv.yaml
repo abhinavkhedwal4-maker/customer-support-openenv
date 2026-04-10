@@ -1,0 +1,37 @@
+name: customer-support-openenv
+version: "1.0.0"
+description: >
+  An OpenEnv-style reinforcement-learning environment that simulates
+  customer-support interactions across three difficulty levels.
+
+author: your-name
+license: MIT
+
+tasks:
+  - id: easy-001
+    difficulty: easy
+    description: Password reset request from a cooperative customer.
+    max_steps: 1
+    pass_threshold: 0.60
+
+  - id: medium-001
+    difficulty: medium
+    description: Duplicate billing dispute with an upset customer.
+    max_steps: 1
+    pass_threshold: 0.65
+
+  - id: hard-001
+    difficulty: hard
+    description: Suspended account, data loss, and escalation threat.
+    max_steps: 1
+    pass_threshold: 0.70
+
+environment:
+  entry_point: env.environment:CustomerSupportEnv
+  observation_class: env.models:Observation
+  action_class: env.models:Action
+  reward_class: env.models:Reward
+
+runtime:
+  python: ">=3.10"
+  baseline: baseline.py
