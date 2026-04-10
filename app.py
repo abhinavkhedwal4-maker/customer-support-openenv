@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 from env import CustomerSupportEnv, Action
@@ -93,5 +92,9 @@ def inference(request: Optional[ResetRequest] = None):
     }
 
 
-if __name__ == "__main__":
+def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
+
+
+if __name__ == "__main__":
+    main()

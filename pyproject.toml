@@ -17,6 +17,9 @@ dependencies = [
     "uvicorn>=0.23.0",
 ]
 
+[project.scripts]
+server = "server.app:main"
+
 [project.urls]
 Homepage = "https://huggingface.co/spaces/akcodes-47/customer-support-openenv"
 Repository = "https://github.com/abhinavkhedwal4-maker/customer-support-openenv"
