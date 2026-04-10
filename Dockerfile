@@ -1,19 +1,16 @@
-# ── Base image ────────────────────────────────────────────────────────────────
 FROM python:3.11-slim
 
-# ── Metadata ──────────────────────────────────────────────────────────────────
-LABEL maintainer="your-name"
-LABEL description="Customer Support OpenEnv baseline runner"
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
 
-# ── Working directory ─────────────────────────────────────────────────────────
 WORKDIR /app
 
-# ── Dependencies ──────────────────────────────────────────────────────────────
-COPY requirements.txt .
+COPY --chown=user requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ── Source code ───────────────────────────────────────────────────────────────
-COPY . .
+COPY --chown=user . .
 
-# ── Run baseline agent ────────────────────────────────────────────────────────
-CMD ["python", "baseline.py"]
+EXPOSE 7860
+
+CMD ["python", "app.py"]
