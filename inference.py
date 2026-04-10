@@ -1,13 +1,7 @@
-"""
-Baseline agent — deterministic rule-based responses for each difficulty.
-Run:  python baseline.py
-"""
-
 from env import CustomerSupportEnv, Action
 
 env = CustomerSupportEnv()
 
-# ─── Baseline responses ────────────────────────────────────────────────────────
 BASELINE_RESPONSES = {
     "easy": Action(
         response=(
@@ -39,28 +33,22 @@ BASELINE_RESPONSES = {
     ),
 }
 
-# ─── Run all difficulties ──────────────────────────────────────────────────────
-difficulties = ["easy", "medium", "hard"]
 
-print("=" * 60)
-print("  Customer Support OpenEnv — Baseline Agent Results")
-print("=" * 60)
-
-for diff in difficulties:
-    obs = env.reset(difficulty=diff)
-    print(f"\n[{diff.upper()} TASK]  task_id={obs.task_id}")
-    print(f"  Customer : {obs.customer_message[:80]}...")
-
-    action = BASELINE_RESPONSES[diff]
-    print(f"  Agent    : {action.response[:80]}...")
-
+def run_inference(difficulty: str = "easy") -> dict:
+    obs = env.reset(difficulty=difficulty)
+    action = BASELINE_RESPONSES[difficulty]
     _, reward, done = env.step(action)
+    return {
+        "task_id": obs.task_id,
+        "difficulty": difficulty,
+        "score": reward.score,
+        "passed": reward.passed,
+        "feedback": reward.feedback,
+        "breakdown": reward.breakdown,
+    }
 
-    print(f"  Score    : {reward.score:.3f}  |  Passed: {reward.passed}")
-    print(f"  Feedback : {reward.feedback}")
-    print(f"  Breakdown: {reward.breakdown}")
-    print(f"  State    : {env.state()}")
 
-print("\n" + "=" * 60)
-print("  Done.")
-print("=" * 60)
+if __name__ == "__main__":
+    for diff in ["easy", "medium", "hard"]:
+        result = run_inference(diff)
+        print(result)

@@ -1,6 +1,11 @@
-import gradio as gr
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import Optional
 from env import CustomerSupportEnv, Action
+import uvicorn
 
+app = FastAPI(title="Customer Support OpenEnv")
 env = CustomerSupportEnv()
 
 BASELINE_RESPONSES = {
@@ -35,69 +40,56 @@ BASELINE_RESPONSES = {
 }
 
 
-def run_task(difficulty: str, custom_response: str, action_type: str):
-    obs = env.reset(difficulty=difficulty)
-    response_text = custom_response.strip() if custom_response.strip() else BASELINE_RESPONSES[difficulty].response
-    action = Action(response=response_text, action_type=action_type)
-    _, reward, _ = env.step(action)
-
-    breakdown_text = "\n".join(f"  {k}: {v}" for k, v in reward.breakdown.items())
-    result = f"""
-📋 TASK: {obs.task_id}  |  Difficulty: {difficulty.upper()}
-👤 Customer: {obs.customer_message}
-
-🤖 Agent Response: {response_text}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📊 SCORE:    {reward.score:.3f} / 1.000
-✅ PASSED:   {reward.passed}
-💬 FEEDBACK: {reward.feedback}
-
-📈 BREAKDOWN:
-{breakdown_text}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"""
-    return result
+class ResetRequest(BaseModel):
+    difficulty: Optional[str] = "easy"
 
 
-with gr.Blocks(title="Customer Support OpenEnv") as demo:
-    gr.Markdown("# 🎧 Customer Support OpenEnv")
-    gr.Markdown("An OpenEnv-style RL environment for customer support tasks. Test your agent responses below.")
+class StepRequest(BaseModel):
+    response: str
+    action_type: Optional[str] = "reply"
 
-    with gr.Row():
-        difficulty = gr.Dropdown(
-            ["easy", "medium", "hard"],
-            value="easy",
-            label="Task Difficulty"
-        )
-        action_type = gr.Dropdown(
-            ["reply", "refund", "escalate", "close"],
-            value="reply",
-            label="Action Type"
-        )
 
-    custom_response = gr.Textbox(
-        label="Agent Response (leave blank to use baseline)",
-        placeholder="Type a custom agent response here, or leave blank for baseline...",
-        lines=4,
-    )
+@app.get("/")
+def root():
+    return {"name": "customer-support-openenv", "version": "1.0.0", "status": "running"}
 
-    run_btn = gr.Button("▶ Run Task", variant="primary")
-    output = gr.Textbox(label="Results", lines=18)
 
-    run_btn.click(
-        fn=run_task,
-        inputs=[difficulty, custom_response, action_type],
-        outputs=output
-    )
+@app.post("/reset")
+def reset(request: ResetRequest):
+    obs = env.reset(difficulty=request.difficulty)
+    return obs.model_dump()
 
-    gr.Markdown("### 🚀 Baseline Scores")
-    gr.Markdown("""
-| Task   | Score | Passed |
-|--------|-------|--------|
-| Easy   | 1.000 | ✅     |
-| Medium | 1.000 | ✅     |
-| Hard   | 1.000 | ✅     |
-""")
 
-demo.launch(server_name="0.0.0.0", server_port=7860)
+@app.post("/step")
+def step(request: StepRequest):
+    action = Action(response=request.response, action_type=request.action_type)
+    obs, reward, done = env.step(action)
+    return {
+        "observation": obs.model_dump(),
+        "reward": reward.model_dump(),
+        "done": done,
+    }
+
+
+@app.get("/state")
+def state():
+    return env.state()
+
+
+@app.post("/inference")
+def inference(request: ResetRequest):
+    obs = env.reset(difficulty=request.difficulty)
+    action = BASELINE_RESPONSES[request.difficulty]
+    _, reward, done = env.step(action)
+    return {
+        "task_id": obs.task_id,
+        "difficulty": request.difficulty,
+        "score": reward.score,
+        "passed": reward.passed,
+        "feedback": reward.feedback,
+        "breakdown": reward.breakdown,
+    }
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7860)
