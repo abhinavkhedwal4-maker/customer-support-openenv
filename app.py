@@ -55,8 +55,9 @@ def root():
 
 
 @app.post("/reset")
-def reset(request: ResetRequest):
-    obs = env.reset(difficulty=request.difficulty)
+def reset(request: Optional[ResetRequest] = None):
+    difficulty = request.difficulty if request else "easy"
+    obs = env.reset(difficulty=difficulty)
     return obs.model_dump()
 
 
@@ -77,13 +78,14 @@ def state():
 
 
 @app.post("/inference")
-def inference(request: ResetRequest):
-    obs = env.reset(difficulty=request.difficulty)
-    action = BASELINE_RESPONSES[request.difficulty]
+def inference(request: Optional[ResetRequest] = None):
+    difficulty = request.difficulty if request else "easy"
+    obs = env.reset(difficulty=difficulty)
+    action = BASELINE_RESPONSES[difficulty]
     _, reward, done = env.step(action)
     return {
         "task_id": obs.task_id,
-        "difficulty": request.difficulty,
+        "difficulty": difficulty,
         "score": reward.score,
         "passed": reward.passed,
         "feedback": reward.feedback,
