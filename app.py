@@ -1,8 +1,8 @@
+import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
 from env import CustomerSupportEnv, Action
-import uvicorn
 
 app = FastAPI(title="Customer Support OpenEnv")
 env = CustomerSupportEnv()
@@ -93,6 +93,7 @@ def inference(request: Optional[ResetRequest] = None):
 
 
 def main():
+    """Entry point for the OpenEnv server."""
     uvicorn.run(app, host="0.0.0.0", port=7860)
 
 
